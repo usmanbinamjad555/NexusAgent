@@ -5,10 +5,8 @@ import type { AgentRun, ApiResponse, CreateRunInput, RunEvent } from "@nexus-age
 import { env } from "@/config/env";
 import { validateRequest } from "@/middlewares/validateRequest";
 import { AppError } from "@/middlewares/errorHandler";
-import { createProvider } from "@/agents/llm";
-import { executeRun } from "@/agents/orchestrator";
-import { persistRun } from "@/agents/persistence";
-import { runStore } from "@/agents/runStore";
+import { createProvider, executeRun, runStore } from "@nexus-agent/agents";
+import { persistRun } from "@/lib/persistRun";
 
 export const runsRouter = Router();
 

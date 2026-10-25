@@ -40,7 +40,11 @@ export class MockProvider implements LlmProvider {
   readonly name = "mock";
   readonly model = "mock";
 
+  /** delayMs simulates model latency so streaming is visible in demos. */
+  constructor(private readonly delayMs = 0) {}
+
   async complete(req: LlmRequest): Promise<LlmResponse> {
+    if (this.delayMs > 0) await new Promise((r) => setTimeout(r, this.delayMs));
     const inputTokens = approxTokens(req.system + JSON.stringify(req.messages));
     const reqText = requirementsOf(req);
     const result = lastToolResult(req);
@@ -96,7 +100,7 @@ export class MockProvider implements LlmProvider {
       case "PM": {
         const features = featuresIn(text);
         return {
-          summary: `Scoped ${String(r["features"])} features at ${String(r["storyPoints"])} story points, roughly ${String(r["estimatedWeeks"])} weeks.`,
+          summary: `Scoped ${String(r["features"])} features at ${String(r["storyPoints"])} story points, roughly ${String(r["estimatedWeeks"])} week(s).`,
           sections: [
             { heading: "Core features", items: features.slice(0, 6) },
             { heading: "MVP cut", items: features.slice(0, 3).map((f) => `Ship first: ${f}`) },

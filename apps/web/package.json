@@ -12,6 +12,7 @@
     "clean": "rimraf .next"
   },
   "dependencies": {
+    "@nexus-agent/agents": "*",
     "@nexus-agent/types": "*",
     "clsx": "^2.1.1",
     "lucide-react": "^0.475.0",

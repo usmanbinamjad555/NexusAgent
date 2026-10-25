@@ -1,16 +1,13 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import type {
   AgentOutput,
-  AgentRun,
-  ApiResponse,
   ReviewResult,
   RunEvent,
   SpecialistType,
   TokenUsage,
 } from "@nexus-agent/types";
-import { env } from "@/lib/env";
 
 const AGENTS: Array<{ type: SpecialistType; label: string }> = [
   { type: "PM", label: "Product Manager" },
@@ -18,19 +15,6 @@ const AGENTS: Array<{ type: SpecialistType; label: string }> = [
   { type: "DATABASE", label: "Database" },
   { type: "DEVOPS", label: "DevOps" },
   { type: "COST", label: "Cost" },
-];
-
-const EVENT_TYPES: RunEvent["type"][] = [
-  "run_started",
-  "stage_started",
-  "agent_started",
-  "llm_call",
-  "tool_call",
-  "tool_result",
-  "agent_completed",
-  "review",
-  "run_completed",
-  "run_failed",
 ];
 
 const SAMPLE =
@@ -62,10 +46,6 @@ export function RunConsole() {
   const [provider, setProvider] = useState<string>("");
   const [status, setStatus] = useState<"idle" | "running" | "completed" | "failed">("idle");
   const [error, setError] = useState<string>("");
-  const source = useRef<EventSource | null>(null);
-
-  useEffect(() => () => source.current?.close(), []);
-
   const apply = (event: RunEvent) => {
     switch (event.type) {
       case "run_started":
@@ -98,28 +78,18 @@ export function RunConsole() {
       case "run_completed":
         setUsage(event.usage);
         setStatus("completed");
-        void loadReport(event.runId);
-        source.current?.close();
         break;
       case "run_failed":
         setError(event.error);
         setStatus("failed");
-        source.current?.close();
         break;
       default:
         break;
     }
   };
 
-  const loadReport = async (id: string) => {
-    const res = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/runs/${id}`);
-    const json = (await res.json()) as ApiResponse<AgentRun>;
-    setReport(json.data?.report ?? "");
-  };
-
   const start = async (e: React.FormEvent) => {
     e.preventDefault();
-    source.current?.close();
     setAgents(emptyAgents());
     setReviews([]);
     setReport("");
@@ -128,21 +98,30 @@ export function RunConsole() {
     setStage("");
     setStatus("running");
     try {
-      const res = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/runs`, {
+      const res = await fetch("/api/demo-run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, requirements }),
       });
-      const json = (await res.json()) as ApiResponse<AgentRun>;
-      if (!json.success || !json.data) {
-        throw new Error(json.error?.message ?? "Could not start run");
+      if (!res.ok || !res.body) throw new Error("Could not start run");
+      // Parse the Server-Sent Events stream: blocks separated by a blank line
+      const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+      let buffer = "";
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += value;
+        let sep: number;
+        while ((sep = buffer.indexOf("\n\n")) !== -1) {
+          const block = buffer.slice(0, sep);
+          buffer = buffer.slice(sep + 2);
+          const name = /^event: (.*)$/m.exec(block)?.[1];
+          const data = /^data: (.*)$/m.exec(block)?.[1];
+          if (!name || !data) continue;
+          if (name === "report") setReport((JSON.parse(data) as { report: string }).report);
+          else apply(JSON.parse(data) as RunEvent);
+        }
       }
-      const es = new EventSource(`${env.NEXT_PUBLIC_API_URL}/api/runs/${json.data.id}/events`);
-      source.current = es;
-      for (const type of EVENT_TYPES) {
-        es.addEventListener(type, (msg) => apply(JSON.parse((msg as MessageEvent<string>).data) as RunEvent));
-      }
-      es.onerror = () => es.close();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setStatus("failed");
