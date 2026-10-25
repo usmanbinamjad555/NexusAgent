@@ -4,6 +4,10 @@ A multi-agent AI system (brief in, architecture plan out) in a typed monorepo bu
 
 ## 🤖 Multi-Agent Architecture Planner
 
+**[Live demo](https://nexusagent-usman-46c4.vercel.app)** · [Demo video](docs/demo.webm) · runs on an offline mock model, so it is free to try
+
+![Run console](docs/console.png)
+
 Submit a product brief and a team of agents turns it into an architecture plan, streamed live.
 
 ```
@@ -24,12 +28,12 @@ Submit a product brief and a team of agents turns it into an architecture plan, 
         markdown architecture brief
 ```
 
-- **Agent runtime** (`apps/api/src/agents/runtime.ts`): tool-use loop with a step budget, per-agent tool allow-list, Zod-validated structured output, and one automatic repair retry.
-- **Providers** (`agents/llm`): Claude via the Messages API (retry with backoff, token and cost tracking), or a deterministic **offline mock** so everything runs with no API key.
+- **Agent runtime** (`packages/agents/src/runtime.ts`): tool-use loop with a step budget, per-agent tool allow-list, Zod-validated structured output, and one automatic repair retry.
+- **Providers** (`packages/agents/src/llm`): Claude via the Messages API (retry with backoff, token and cost tracking), or a deterministic **offline mock** so everything runs with no API key.
 - **Live streaming**: every LLM call, tool call and result is emitted as a Server-Sent Event (`GET /api/runs/:id/events`). Late subscribers replay the log.
 - **Review loop**: the Reviewer cross-checks agents against each other. In the mock run it flags the missing backup plan and DevOps revises.
 - **Optional persistence**: `PERSIST_RUNS=true` writes briefs, artifacts (versioned by revision) and an audit log to Postgres through the Prisma repositories.
-- **Tests**: `npm test --workspace @nexus-agent/api` covers ordering, the revision loop, failure handling, and tool-permission checks.
+- **Tests**: `npm test --workspace @nexus-agent/agents` covers ordering, the revision loop, failure handling, and tool-permission checks.
 
 ### Try it
 
@@ -44,7 +48,9 @@ npm run dev          # web on :3000, API on :4000; open the page and click "Run 
 curl -X POST localhost:4000/api/runs -H "content-type: application/json"   -d '{"title":"Shop","requirements":"Online store with accounts and payments for 20,000 users."}'
 ```
 
-| Endpoint | Purpose |
+The web app also ships a self-contained `POST /api/demo-run` (Next.js route) that runs the whole pipeline inside one request and streams events back, which is what the live demo uses. The agents live in `packages/agents` and are shared by the web app and the Express API.
+
+| Endpoint (Express API) | Purpose |
 | --- | --- |
 | `POST /api/runs` | Start a run (returns 202 and the run id) |
 | `GET /api/runs`, `GET /api/runs/:id` | List runs, fetch a run with outputs and report |
