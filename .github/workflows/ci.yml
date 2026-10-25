@@ -13,4 +13,4 @@ jobs:
       - run: npm run db:generate
       - run: npm run build --workspace @nexus-agent/types
       - run: npm run typecheck
-      - run: npm test --workspace @nexus-agent/api
+      - run: npm test --workspace @nexus-agent/agents
