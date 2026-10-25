@@ -4,7 +4,7 @@ A multi-agent AI system (brief in, architecture plan out) in a typed monorepo bu
 
 ## 🤖 Multi-Agent Architecture Planner
 
-**[Live demo](https://nexusagent-usman-46c4.vercel.app)** · [Demo video](docs/demo.webm) · runs on the Gemini free tier, with an offline fallback model if the quota is used up
+**[Live demo](https://nexusagent-usman-46c4.vercel.app)** · runs on the Gemini free tier, with an offline fallback model if the quota is used up
 
 ![Run console](docs/console.png)
 
