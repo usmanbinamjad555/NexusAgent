@@ -4,7 +4,7 @@ A multi-agent AI system (brief in, architecture plan out) in a typed monorepo bu
 
 ## 🤖 Multi-Agent Architecture Planner
 
-**[Live demo](https://nexusagent-usman-46c4.vercel.app)** · [Demo video](docs/demo.webm) · runs on an offline mock model, so it is free to try
+**[Live demo](https://nexusagent-usman-46c4.vercel.app)** · [Demo video](docs/demo.webm) · runs on the Gemini free tier, with an offline fallback model if the quota is used up
 
 ![Run console](docs/console.png)
 
@@ -29,7 +29,7 @@ Submit a product brief and a team of agents turns it into an architecture plan, 
 ```
 
 - **Agent runtime** (`packages/agents/src/runtime.ts`): tool-use loop with a step budget, per-agent tool allow-list, Zod-validated structured output, and one automatic repair retry.
-- **Providers** (`packages/agents/src/llm`): Claude via the Messages API (retry with backoff, token and cost tracking), or a deterministic **offline mock** so everything runs with no API key.
+- **Providers** (`packages/agents/src/llm`): Claude (Messages API), Gemini (function calling, thought-signature round trip), or a deterministic **offline mock**. Order: Claude if `ANTHROPIC_API_KEY` is set, else Gemini if `GEMINI_API_KEY` is set, else the mock. The live demo reruns a failed real-model run on the mock and rate-limits real runs per IP to protect the free quota.
 - **Live streaming**: every LLM call, tool call and result is emitted as a Server-Sent Event (`GET /api/runs/:id/events`). Late subscribers replay the log.
 - **Review loop**: the Reviewer cross-checks agents against each other. In the mock run it flags the missing backup plan and DevOps revises.
 - **Optional persistence**: `PERSIST_RUNS=true` writes briefs, artifacts (versioned by revision) and an audit log to Postgres through the Prisma repositories.
@@ -41,7 +41,8 @@ Submit a product brief and a team of agents turns it into an architecture plan, 
 npm install
 npm run build --workspace @nexus-agent/types
 npm run dev          # web on :3000, API on :4000; open the page and click "Run agents"
-# Use real Claude: set ANTHROPIC_API_KEY in apps/api/.env
+# Real models: set GEMINI_API_KEY (free key from aistudio.google.com) or ANTHROPIC_API_KEY in apps/api/.env
+#   (the web demo route reads the same variables from apps/web/.env.local)
 ```
 
 ```bash
