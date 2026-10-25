@@ -6,7 +6,14 @@ export interface ToolDefinition {
 
 export type ContentBlock =
   | { type: "text"; text: string }
-  | { type: "tool_use"; id: string; name: string; input: Record<string, unknown> }
+  | {
+      type: "tool_use";
+      id: string;
+      name: string;
+      input: Record<string, unknown>;
+      /** Opaque provider state (Gemini thought signature) that must be echoed back. */
+      signature?: string;
+    }
   | { type: "tool_result"; tool_use_id: string; content: string; is_error?: boolean };
 
 export interface LlmMessage {
@@ -40,6 +47,8 @@ export interface LlmProvider {
 const PRICING: Record<string, { input: number; output: number }> = {
   default: { input: 3, output: 15 },
   mock: { input: 0, output: 0 },
+  // Gemini free tier
+  "gemini-3.5-flash": { input: 0, output: 0 },
 };
 
 export const estimateCostUsd = (model: string, inputTokens: number, outputTokens: number): number => {

@@ -24,6 +24,11 @@ const envSchema = z.object({
     .optional()
     .transform((v) => (v ? v : undefined)),
   ANTHROPIC_MODEL: z.string().default("claude-sonnet-5-5"),
+  GEMINI_API_KEY: z
+    .string()
+    .optional()
+    .transform((v) => (v ? v : undefined)),
+  GEMINI_MODEL: z.string().default("gemini-3.5-flash"),
   PERSIST_RUNS: z
     .enum(["true", "false"])
     .default("false")

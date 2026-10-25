@@ -21,7 +21,12 @@ const ok = <T>(data: T): ApiResponse<T> => ({
   timestamp: new Date().toISOString(),
 });
 
-const provider = createProvider(env.ANTHROPIC_API_KEY, env.ANTHROPIC_MODEL);
+const provider = createProvider({
+  anthropicApiKey: env.ANTHROPIC_API_KEY,
+  anthropicModel: env.ANTHROPIC_MODEL,
+  geminiApiKey: env.GEMINI_API_KEY,
+  geminiModel: env.GEMINI_MODEL,
+});
 
 // POST /api/runs: start a multi-agent run in the background
 runsRouter.post(
