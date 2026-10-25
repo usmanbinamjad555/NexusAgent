@@ -20,7 +20,7 @@ export const createProvider = (opts: ProviderOptions = {}): LlmProvider => {
     return new AnthropicProvider(opts.anthropicApiKey, opts.anthropicModel ?? "claude-sonnet-5-5");
   }
   if (opts.geminiApiKey) {
-    return new GeminiProvider(opts.geminiApiKey, opts.geminiModel ?? "gemini-3.5-flash");
+    return new GeminiProvider(opts.geminiApiKey, opts.geminiModel ?? "gemini-3.5-flash-lite");
   }
   return new MockProvider(opts.mockDelayMs ?? 0);
 };

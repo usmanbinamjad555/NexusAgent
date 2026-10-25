@@ -28,7 +28,7 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => (v ? v : undefined)),
-  GEMINI_MODEL: z.string().default("gemini-3.5-flash"),
+  GEMINI_MODEL: z.string().default("gemini-3.5-flash-lite"),
   PERSIST_RUNS: z
     .enum(["true", "false"])
     .default("false")

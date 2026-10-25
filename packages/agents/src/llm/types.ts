@@ -48,7 +48,7 @@ const PRICING: Record<string, { input: number; output: number }> = {
   default: { input: 3, output: 15 },
   mock: { input: 0, output: 0 },
   // Gemini free tier
-  "gemini-3.5-flash": { input: 0, output: 0 },
+  "gemini-3.5-flash-lite": { input: 0, output: 0 },
 };
 
 export const estimateCostUsd = (model: string, inputTokens: number, outputTokens: number): number => {
