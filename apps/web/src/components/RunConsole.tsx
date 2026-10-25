@@ -46,9 +46,13 @@ export function RunConsole() {
   const [provider, setProvider] = useState<string>("");
   const [status, setStatus] = useState<"idle" | "running" | "completed" | "failed">("idle");
   const [error, setError] = useState<string>("");
+  const [notice, setNotice] = useState<string>("");
   const apply = (event: RunEvent) => {
     switch (event.type) {
       case "run_started":
+        // A fallback attempt starts a fresh run, so clear the previous attempt
+        setAgents(emptyAgents());
+        setReviews([]);
         setProvider(event.provider);
         break;
       case "stage_started":
@@ -95,6 +99,7 @@ export function RunConsole() {
     setReport("");
     setUsage(null);
     setError("");
+    setNotice("");
     setStage("");
     setStatus("running");
     try {
@@ -118,7 +123,8 @@ export function RunConsole() {
           const name = /^event: (.*)$/m.exec(block)?.[1];
           const data = /^data: (.*)$/m.exec(block)?.[1];
           if (!name || !data) continue;
-          if (name === "report") setReport((JSON.parse(data) as { report: string }).report);
+          if (name === "notice") setNotice((JSON.parse(data) as { message: string }).message);
+          else if (name === "report") setReport((JSON.parse(data) as { report: string }).report);
           else apply(JSON.parse(data) as RunEvent);
         }
       }
@@ -173,6 +179,7 @@ export function RunConsole() {
             </span>
           )}
         </div>
+        {notice && <p className="text-sm text-amber-400">{notice}</p>}
         {error && <p className="text-sm text-red-400">{error}</p>}
       </form>
 
