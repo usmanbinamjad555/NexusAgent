@@ -1,0 +1,87 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum BriefStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum AgentType {
+  PM
+  SECURITY
+  DATABASE
+  DEVOPS
+  COST
+}
+
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  projectBriefs ProjectBrief[]
+
+  @@map("users")
+}
+
+model ProjectBrief {
+  id              String          @id @default(cuid())
+  userId          String?
+  user            User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  title           String
+  rawRequirements String          @db.Text
+  status          BriefStatus     @default(PENDING)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  artifacts       AgentArtifact[]
+  auditLogs       AuditLog[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("project_briefs")
+}
+
+model AgentArtifact {
+  id             String       @id @default(cuid())
+  projectBriefId String
+  projectBrief   ProjectBrief @relation(fields: [projectBriefId], references: [id], onDelete: Cascade)
+  agentType      AgentType
+  payload        Json
+  version        Int          @default(1)
+  createdAt      DateTime     @default(now())
+
+  @@index([projectBriefId])
+  @@index([agentType])
+  @@map("agent_artifacts")
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  projectBriefId String
+  projectBrief   ProjectBrief @relation(fields: [projectBriefId], references: [id], onDelete: Cascade)
+  stage          String
+  message        String
+  level          LogLevel     @default(INFO)
+  metadata       Json?
+  timestamp      DateTime     @default(now())
+
+  @@index([projectBriefId])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
