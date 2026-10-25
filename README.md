@@ -1,6 +1,58 @@
 # NexusAgent Monorepo
 
-Enterprise-grade, production-ready monorepo for **NexusAgent** built with **Turborepo**, **npm workspaces**, **Next.js 15**, **Express.js**, strict **TypeScript**, and **Docker**.
+A multi-agent AI system (brief in, architecture plan out) in a typed monorepo built with **Turborepo**, **npm workspaces**, **Next.js 15**, **Express.js**, strict **TypeScript**, and **Docker**.
+
+## 🤖 Multi-Agent Architecture Planner
+
+Submit a product brief and a team of agents turns it into an architecture plan, streamed live.
+
+```
+              ┌──────────┐
+ brief ─────▶ │    PM    │  scope, features, estimate        (tool: estimate_scope)
+              └────┬─────┘
+        ┌──────────┼───────────┬───────────┐   run in parallel
+        ▼          ▼           ▼           ▼
+   ┌─────────┐ ┌─────────┐ ┌────────┐ ┌────────┐
+   │Security │ │Database │ │ DevOps │ │  Cost  │   (owasp_checklist, design_schema,
+   └────┬────┘ └────┬────┘ └───┬────┘ └───┬────┘    pick_infra, estimate_monthly_cost)
+        └──────────┬┴──────────┴──────────┘
+                   ▼
+            ┌────────────┐   flags gaps ──▶ flagged agents revise once
+            │  Reviewer  │
+            └─────┬──────┘
+                  ▼
+        markdown architecture brief
+```
+
+- **Agent runtime** (`apps/api/src/agents/runtime.ts`): tool-use loop with a step budget, per-agent tool allow-list, Zod-validated structured output, and one automatic repair retry.
+- **Providers** (`agents/llm`): Claude via the Messages API (retry with backoff, token and cost tracking), or a deterministic **offline mock** so everything runs with no API key.
+- **Live streaming**: every LLM call, tool call and result is emitted as a Server-Sent Event (`GET /api/runs/:id/events`). Late subscribers replay the log.
+- **Review loop**: the Reviewer cross-checks agents against each other. In the mock run it flags the missing backup plan and DevOps revises.
+- **Optional persistence**: `PERSIST_RUNS=true` writes briefs, artifacts (versioned by revision) and an audit log to Postgres through the Prisma repositories.
+- **Tests**: `npm test --workspace @nexus-agent/api` covers ordering, the revision loop, failure handling, and tool-permission checks.
+
+### Try it
+
+```bash
+npm install
+npm run build --workspace @nexus-agent/types
+npm run dev          # web on :3000, API on :4000; open the page and click "Run agents"
+# Use real Claude: set ANTHROPIC_API_KEY in apps/api/.env
+```
+
+```bash
+curl -X POST localhost:4000/api/runs -H "content-type: application/json"   -d '{"title":"Shop","requirements":"Online store with accounts and payments for 20,000 users."}'
+```
+
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /api/runs` | Start a run (returns 202 and the run id) |
+| `GET /api/runs`, `GET /api/runs/:id` | List runs, fetch a run with outputs and report |
+| `GET /api/runs/:id/events` | SSE stream of agent activity |
+
+### Roadmap
+
+Durable job queue (BullMQ on the existing Redis), human approval checkpoints, run trace viewer, pgvector memory, evals in CI.
 
 ---
 

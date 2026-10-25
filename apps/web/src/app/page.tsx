@@ -1,43 +1,6 @@
 import React from "react";
-import type { Agent } from "@nexus-agent/types";
 import { env } from "@/lib/env";
-import { AgentStatusCard } from "@/components/AgentStatusCard";
-
-// Sample fallback agents if API is offline during build
-const initialAgents: Agent[] = [
-  {
-    id: "agent-orchestrator-01",
-    name: "Nexus Orchestrator",
-    status: "running",
-    config: {
-      name: "Nexus Orchestrator",
-      description: "Coordinates multi-agent subtasks, tool dispatches, and consensus verification",
-      model: "gemini-2.0-flash",
-      capabilities: ["task_planning", "code_execution"],
-      temperature: 0.2,
-      maxTokens: 4096,
-    },
-    activeTasks: 3,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "agent-evaluator-02",
-    name: "Safety & Policy Guard",
-    status: "idle",
-    config: {
-      name: "Safety & Policy Guard",
-      description: "Static analysis and compliance verification for autonomous outputs",
-      model: "gemini-2.0-flash",
-      capabilities: ["data_analysis", "file_management"],
-      temperature: 0.0,
-      maxTokens: 2048,
-    },
-    activeTasks: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+import { RunConsole } from "@/components/RunConsole";
 
 export default function Home() {
   return (
@@ -50,11 +13,11 @@ export default function Home() {
               Nexus<span className="text-indigo-400">Agent</span>
             </h1>
             <span className="rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-400 border border-indigo-500/20">
-              v1.0 Production Monorepo
+              Multi-agent demo
             </span>
           </div>
           <p className="mt-2 text-base text-slate-400">
-            Autonomous multi-agent orchestration platform with Next.js 15, Express.js, & Docker.
+            Turn a product brief into an architecture plan with a team of cooperating AI agents.
           </p>
         </div>
 
@@ -64,6 +27,8 @@ export default function Home() {
           <span className="font-mono font-medium text-indigo-300">{env.NEXT_PUBLIC_APP_ENV}</span>
         </div>
       </div>
+
+      <RunConsole />
 
       {/* Monorepo Architecture Highlights */}
       <div className="mt-10">
@@ -104,25 +69,6 @@ export default function Home() {
               Root Docker Compose with volume persistence, healthchecks, and network isolation.
             </p>
           </div>
-        </div>
-      </div>
-
-      {/* Active Agents Fleet Preview */}
-      <div className="mt-12">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-slate-100">Configured Agent Fleet</h2>
-            <p className="text-sm text-slate-400">
-              Validated through shared domain schemas from{" "}
-              <code className="text-indigo-300">@nexus-agent/types</code>
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
-          {initialAgents.map((agent) => (
-            <AgentStatusCard key={agent.id} agent={agent} />
-          ))}
         </div>
       </div>
 

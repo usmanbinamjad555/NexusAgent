@@ -18,6 +18,16 @@ const envSchema = z.object({
     .string()
     .min(1, { message: "REDIS_URL is required" })
     .default("redis://localhost:6379"),
+  // Leave empty to run the agents on the deterministic offline mock provider
+  ANTHROPIC_API_KEY: z
+    .string()
+    .optional()
+    .transform((v) => (v ? v : undefined)),
+  ANTHROPIC_MODEL: z.string().default("claude-sonnet-5-5"),
+  PERSIST_RUNS: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

@@ -9,6 +9,7 @@
     "build": "tsc && tsc-alias",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/agents/__tests__/orchestrator.test.ts",
     "clean": "rimraf dist",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
